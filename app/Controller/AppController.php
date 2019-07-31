@@ -31,4 +31,53 @@ App::uses('Controller', 'Controller');
  * @link		https://book.cakephp.org/2.0/en/controllers.html#the-app-controller
  */
 class AppController extends Controller {
+	public $components = array('Session',
+		'Auth'=>array(
+		
+			'loginAction' => array(
+				'controller' => 'member',
+				'action' => 'index'
+			),
+			'loginRedirect' => array(
+                'controller' => 'member',
+                'action' => 'dashboard'
+            ),
+            'logoutRedirect' => array(
+                'controller' => 'member',
+                'action' => 'index'
+            ),
+			'authenticate' => array(
+                'Form' => array(
+                    'passwordHasher' => array(
+						'className' => 'Simple',
+						'hashType' => 'md5'
+					),
+					
+					'userModel' => 'Member',
+					
+					'fields'=>array(
+						'username'=>'email',
+						'password'=>'password'
+					),
+					
+					'scope'=>array('Member.is_active'=>'1'),
+					
+                )
+            ),
+			
+			'authorize'=>array('Controller'),
+			
+			'authError' => 'Did you really think you are allowed to see that?',
+		)
+	
+	);
+	
+	public function beforeFilter() 
+	{
+		parent::beforeFilter();
+	}
+	
+	public function isAuthorized($user) {
+		return true;
+	}
 }

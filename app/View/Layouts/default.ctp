@@ -28,7 +28,9 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
 	<?php
 		echo $this->Html->meta('icon');
 
-		echo $this->Html->css('cake.generic');
+		echo $this->Html->css(array('cake.generic', 'bootstrap.min'));
+		
+		echo $this->Html->script(array('jquery', 'bootstrap.min'));
 
 		echo $this->fetch('meta');
 		echo $this->fetch('css');
@@ -38,11 +40,13 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
 <body>
 	<div id="container">
 		<div id="header">
-			<h1><?php echo $this->Html->link($cakeDescription, 'https://cakephp.org'); ?></h1>
+			<!--<h1><?php echo $this->Html->link($cakeDescription, 'https://cakephp.org'); ?></h1>-->
+			<h2>User Management Project</h2>
 		</div>
 		<div id="content">
 
 			<?php echo $this->Flash->render(); ?>
+			<?php //echo $this->Flash->render('auth'); ?>
 
 			<?php echo $this->fetch('content'); ?>
 		</div>
@@ -57,6 +61,34 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
 				<?php echo $cakeVersion; ?>
 			</p>
 		</div>
+		
+		
+		
+		<!-- Modal -->
+	<div class="modal fade" id="myModal" role="dialog">
+		<div class="modal-dialog">
+		
+		  <!-- Modal content-->
+		  <div class="modal-content">
+			<div class="modal-header">
+			  <button type="button" class="close" data-dismiss="modal">&times;</button>
+			  <h4 class="modal-title">!Oops</h4>
+			</div>
+			<div class="modal-body">
+			  
+			</div>
+			<div class="modal-footer">
+			  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		  </div>
+		  
+		</div>
+  </div>
+		
+		
+		
+		
+		
 	</div>
 	<?php //echo $this->element('sql_dump'); ?>
 </body>

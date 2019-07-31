@@ -4,6 +4,12 @@ require_once(ROOT . DS . 'app' . DS .'Vendor' . DS  .  'simple_html_dom.php');
 class ApicontentController extends AppController
 {
 	public $helpers = array('Html','Form');
+	
+	public function beforeFilter() 
+	{
+		parent::beforeFilter();
+		$this->Auth->allow();
+	}
 
 	public function scrapdata()
 	{

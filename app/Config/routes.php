@@ -50,6 +50,8 @@
 	Router::connect('/business/unit/edit/:id', array('controller' => 'businessunit', 'action' => 'edit'), array('pass'=>array('id')));
 	
 	Router::connect('/business/unit/remove/:id', array('controller' => 'businessunit', 'action' => 'remove'), array('pass'=>array('id')));
+	
+	Router::connect('/member/signup', array('controller' => 'member', 'action' => 'add'));
 
 /**
  * Load all plugin routes. See the CakePlugin documentation on

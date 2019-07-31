@@ -7,6 +7,7 @@ class BusinessunitController extends AppController
 	public function beforeFilter() 
 	{
 		parent::beforeFilter();
+		$this->Auth->allow();
 		$this->loadModel('Business');
 		$this->loadModel('Subbusiness');
 		$this->loadModel('Budget');

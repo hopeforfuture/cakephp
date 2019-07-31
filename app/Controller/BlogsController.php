@@ -7,6 +7,7 @@ class BlogsController extends AppController
 	public function beforeFilter() 
 	{
 		parent::beforeFilter();
+		$this->Auth->allow();
 		$this->loadModel('Blog');
 	}
 	

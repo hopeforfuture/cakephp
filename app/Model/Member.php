@@ -1,4 +1,5 @@
 <?php
+App::uses('SimplePasswordHasher', 'Controller/Component/Auth');
 class Member extends AppModel
 {
 	public $useTable = 'tblmembers';
@@ -13,6 +14,7 @@ class Member extends AppModel
     );
 	
 	public $validate = array(
+	
 		'name' => array(
 			'name-notBlank' => array(
 				'rule'=>'notBlank',
@@ -24,50 +26,53 @@ class Member extends AppModel
 		
 		'email' => array(
 			'email-notBlank' => array(
-				'rule'=>'notBlank',
+				'rule' => 'notBlank',
 				'required'=>true,
 				'allowEmpty'=>false,
 				'message'=>'Email required.'
 			),
 			
 			'email-true' => array(
-				'rule'=> array('email', true),
+				'rule' => array('email', true),
 				'message' => 'Please supply a valid email address.'
+			),
+			
+			'email-unique' => array(
+				'rule' => 'isUnique',
+				'message' => 'This email has already been taken.',
+				'on'=>'create'
 			)
 		),
 		
 		'password' => array(
 			'password-notBlank' => array(
-				'rule'=>'notBlank',
+				'rule' => 'notBlank',
 				'required'=>true,
 				'allowEmpty'=>false,
 				'message'=>'Password required.'
 			),
 			
 			'password-length' => array(
-				'rule'=>array('lengthBetween', 6, 15),
+				'rule' => array('lengthBetween', 6, 15),
 				'message'=>'Password length should between 6 and 15.'
-			),
+			)
 			
-			'passwords-match' => array(
-                 'rule' => array('matchPasswords'),
-                 'message' => 'Your passwords do not match!'
-             )
 		)
 		
 	);
 	
-	public function matchPasswords($data)
+	public function beforeSave($options = array()) 
 	{
-      if ($data['password']==$this->data['Member']['confirm_password'])
-	  {
-          return true;
-      }
-
-      $this->invalidate('confirm_password','Your passwords do not match!');
-
-      return false;
-	}
+        if (!empty($this->data[$this->alias]['password'])) 
+		{
+            $passwordHasher = new SimplePasswordHasher(array('hashType' => 'md5'));
+            $this->data[$this->alias]['password'] = $passwordHasher->hash(
+                $this->data[$this->alias]['password']
+            );
+        }
+        return true;
+    }
+	
 	
 }
 ?>
