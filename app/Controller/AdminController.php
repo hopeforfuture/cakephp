@@ -3,11 +3,11 @@ class AdminController extends AppController
 {
 	public $helpers = array('Html', 'Form', 'Flash');
     public $components = array('Flash');
+	public $uses = array('Admin');
 	
 	public function beforeFilter() 
 	{
 		parent::beforeFilter();
-		$this->loadModel('Admin');
 		
 		$this->Auth->loginAction = array(
 			'controller' => 'admin',
@@ -32,8 +32,8 @@ class AdminController extends AppController
 				'userModel' => 'Admin',
 				
 				'passwordHasher' => array(
-						'className' => 'Simple',
-						'hashType' => 'md5'
+					'className' => 'Simple',
+					'hashType' => 'md5'
 				),
 					
 				'fields'=>array(

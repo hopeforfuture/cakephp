@@ -3,13 +3,11 @@ class MemberController extends AppController
 {
 	public $helpers = array('Html', 'Form', 'Flash');
     public $components = array('Flash');
+	public $uses = array('Member', 'Hobby', 'Profile');
 	
 	public function beforeFilter() 
 	{
 		parent::beforeFilter();
-		$this->loadModel('Member');
-		$this->loadModel('Hobby');
-		$this->loadModel('Profile');
 		$this->Auth->allow(array('add', 'index'));
 	}
 	
