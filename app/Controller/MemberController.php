@@ -194,12 +194,78 @@ class MemberController extends AppController
 		{
 			return $this->redirect(array('action'=>'index'));
 		}
+		$all_hobby = $this->gethobbies();
+		$hobby_str = '';
 		$name = $this->Auth->user('name');
 		$email = $this->Auth->user('email');
-		$full_address = $this->Auth->user('full_address');
+		$full_address = $this->Session->read('Auth.User.Profile.full_address');
+		$hobbies = explode(",", $this->Session->read('Auth.User.Profile.hobby'));
+		$food_habit = '';
+		$smoking_habit = '';
+		$drinking_habit = '';
+		$avatar = '';
+		
+		if(!empty($hobbies))
+		{
+			foreach($hobbies as $hobby)
+			{
+				$hobby_str.=$all_hobby[$hobby].",";
+			}
+			$hobby_str = rtrim($hobby_str, ",");
+		}
+		switch($this->Session->read('Auth.User.Profile.food_habit'))
+		{
+			case 'V':
+				$food_habit = 'Vegeterian';
+			break;
+			
+			case 'NV':
+				$food_habit = 'Non Vegeterian';
+			break;
+			
+			case 'E':
+				$food_habit = 'Eggiterian';
+			break;
+		}
+		switch($this->Session->read('Auth.User.Profile.smoking_habit'))
+		{
+			case 'NS':
+				$smoking_habit = 'Non Smoker';
+			break;
+			
+			case 'RS':
+				$smoking_habit = 'Regular Smoker';
+			break;
+			
+			case 'OS':
+				$smoking_habit = 'Occational Smoker';
+			break;
+		}
+		
+		switch($this->Session->read('Auth.User.Profile.drinking_habit'))
+		{
+			case 'ND':
+				$drinking_habit = 'Non Drinker';
+			break;
+			
+			case 'RD':
+				$drinking_habit = 'Regular Drinker';
+			break;
+			
+			case 'SD':
+				$drinking_habit = 'Social Drinker';
+			break;
+		}
+		$avatar = empty($this->Session->read('Auth.User.Profile.profile_img')) ? 'avatar.png' : $this->Session->read('Auth.User.Profile.profile_img');
 		$this->set('name', $name);
 		$this->set('email', $email);
 		$this->set('address', $full_address);
+		$this->set('hobby', $hobby_str);
+		$this->set('food_habit', $food_habit);
+		$this->set('smoking_habit', $smoking_habit);
+		$this->set('drinking_habit', $drinking_habit);
+		$this->set('avatar', $avatar);
+		
 	}
 	
 	public function logout() 
