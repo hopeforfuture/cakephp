@@ -68,6 +68,7 @@ class MemberController extends AppController
 		{
 			$tmp_name = '';
 			
+			
 			foreach($this->request->data['Member'] as $key=>$val)
 			{
 				if($key == 'confirm_password')
@@ -196,10 +197,11 @@ class MemberController extends AppController
 		}
 		$all_hobby = $this->gethobbies();
 		$hobby_str = '';
-		$name = $this->Auth->user('name');
-		$email = $this->Auth->user('email');
-		$full_address = $this->Session->read('Auth.User.Profile.full_address');
-		$hobbies = explode(",", $this->Session->read('Auth.User.Profile.hobby'));
+		$memberinfo = $this->Member->findById($id);
+		$name = $memberinfo['Member']['name'];
+		$email = $memberinfo['Member']['email'];
+		$full_address = $memberinfo['Profile']['full_address'];
+		$hobbies = explode(",", $memberinfo['Profile']['hobby']);
 		$food_habit = '';
 		$smoking_habit = '';
 		$drinking_habit = '';
@@ -213,7 +215,7 @@ class MemberController extends AppController
 			}
 			$hobby_str = rtrim($hobby_str, ",");
 		}
-		switch($this->Session->read('Auth.User.Profile.food_habit'))
+		switch($memberinfo['Profile']['food_habit'])
 		{
 			case 'V':
 				$food_habit = 'Vegeterian';
@@ -227,7 +229,7 @@ class MemberController extends AppController
 				$food_habit = 'Eggiterian';
 			break;
 		}
-		switch($this->Session->read('Auth.User.Profile.smoking_habit'))
+		switch($memberinfo['Profile']['smoking_habit'])
 		{
 			case 'NS':
 				$smoking_habit = 'Non Smoker';
@@ -242,7 +244,7 @@ class MemberController extends AppController
 			break;
 		}
 		
-		switch($this->Session->read('Auth.User.Profile.drinking_habit'))
+		switch($memberinfo['Profile']['drinking_habit'])
 		{
 			case 'ND':
 				$drinking_habit = 'Non Drinker';
@@ -256,7 +258,7 @@ class MemberController extends AppController
 				$drinking_habit = 'Social Drinker';
 			break;
 		}
-		$avatar = empty($this->Session->read('Auth.User.Profile.profile_img')) ? 'avatar.png' : $this->Session->read('Auth.User.Profile.profile_img');
+		$avatar = empty($memberinfo['Profile']['profile_img']) ? 'avatar.png' : $memberinfo['Profile']['profile_img'];
 		$this->set('name', $name);
 		$this->set('email', $email);
 		$this->set('address', $full_address);
@@ -265,6 +267,148 @@ class MemberController extends AppController
 		$this->set('smoking_habit', $smoking_habit);
 		$this->set('drinking_habit', $drinking_habit);
 		$this->set('avatar', $avatar);
+		//$this->set('member_id', $id);
+		
+	}
+	
+	public function edit()
+	{
+		$id = $this->Auth->user('id');
+		$profile_id = $this->Session->read('Auth.User.Profile.id');
+		if(empty($id))
+		{
+			return $this->redirect(array('action'=>'index'));
+		}
+		
+		$food_habits = array('V'=>'Vegeterian', 'NV'=>'Non Vegeterian', 'E'=>'Eggiterian');
+		$smoking_habits = array('NS'=>'Non Smoker', 'RS'=>'Regular Smoker', 'OS'=>'Occational Smoker');
+		$drinking_habits = array('ND'=>'Non Drinker', 'RD'=>'Regular Drinker', 'SD'=>'Social Drinker');
+		$hobbies = $this->gethobbies();
+		
+		$memberinfo = $this->Member->findById($id);
+		
+		$upload_dir = WWW_ROOT."avatar";
+		
+		if($this->request->is(array('post', 'put')))
+		{
+			$tmp_name = '';
+			$old_img = $this->request->data['Profile']['old_img'];
+			
+			$this->Member->id = $id;
+			
+			foreach($this->request->data['Member'] as $key=>$val)
+			{
+				$this->request->data['Member'][$key] = trim($val);
+			}
+			foreach($this->request->data['Profile'] as $key=>$val)
+			{
+				if(is_array($val))
+				{
+					if($key == 'profile_img')
+					{
+						$this->request->data['Profile'][$key] = $val;
+						$tmp_name = $val['tmp_name'];
+					}
+					elseif($key == 'hobby')
+					{
+						$this->request->data['Profile'][$key] = implode(",", $val);
+					}
+				}
+				else
+				{
+					if($key == 'old_img')
+					{
+						unset($this->request->data['Profile']['old_img']);
+					}
+					else
+					{
+						$this->request->data['Profile'][$key] = trim($val);
+					}
+				}
+				
+			}
+			
+			$profile_fields = array('full_address', 'hobby', 'food_habit', 'smoking_habit', 'drinking_habit');
+			
+			if(!empty($tmp_name))
+			{
+				array_push($profile_fields, 'profile_img');
+			}
+			
+			$this->Member->set($this->request->data);
+			$this->Profile->set($this->request->data);
+			
+			$flag_member =  $this->Member->validates(array('fieldList'=>array('name')));
+			$flag_profile = $this->Profile->validates(array('fieldList'=>$profile_fields));
+			
+			
+			if($flag_member && $flag_profile)
+			{
+				/* If new image is uploaded then */
+				/* Upload new image and delete existing image */
+				$upload_filename = '';
+				if(!empty($tmp_name))
+				{
+					
+					$fileinfo = pathinfo($this->request->data['Profile']['profile_img']['name']);
+					
+					$upload_filename = time().".".$fileinfo['extension'];
+					
+					$upload_path = $upload_dir.DS.$upload_filename;
+					
+					if(move_uploaded_file($tmp_name, $upload_path))
+					{
+						$this->request->data['Profile']['profile_img'] = $upload_filename;
+						if($old_img != 'avatar.png')
+						{
+							$old_img_path = $upload_dir.DS.$old_img;
+							@unlink($old_img_path);
+						}
+					}
+				}
+				else
+				{
+					$this->request->data['Profile']['profile_img'] = $old_img;
+				}
+				
+				
+				try
+				{
+					//$this->Member->saveField('name', $this->request->data['Member']['name']);
+					$this->Member->save($this->request->data, true, array('name'));
+					$this->Member->Profile->id = $profile_id;
+					$this->Member->Profile->save($this->request->data);
+					$this->Flash->success(__('Your profile has been updated successfully.'));
+					return $this->redirect(array('action' => 'dashboard'));
+				}
+				catch(Exception $ex)
+				{
+					var_dump($ex);
+					die;
+				}
+				
+			}
+			else
+			{
+				$errors_member = $this->Member->validationErrors;
+				$errors_profile = $this->Profile->validationErrors;
+				$this->set('errors_member', $errors_member);
+				$this->set('errors_profile', $errors_profile);
+				$this->request->data['Profile']['profile_img'] = $old_img;
+			}
+			
+		}
+		
+		if (!$this->request->data)
+		{
+			$this->request->data = $memberinfo;
+			$this->request->data['Profile']['profile_img'] = empty($this->request->data['Profile']['profile_img'])?'avatar.png':$this->request->data['Profile']['profile_img'];
+		}
+		
+		$this->set('food_habits', $food_habits);
+		$this->set('smoking_habits', $smoking_habits);
+		$this->set('drinking_habits', $drinking_habits);
+		$this->set('hobbies', $hobbies);
 		
 	}
 	

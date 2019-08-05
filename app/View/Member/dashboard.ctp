@@ -1,6 +1,10 @@
 <?php echo $this->Html->link(
     'Logout',
     array('controller' => 'member', 'action' => 'logout')
+); ?>&nbsp;
+<?php echo $this->Html->link(
+    'Edit',
+    array('controller' => 'member', 'action' => 'edit')
 ); ?>
 
 <table>
