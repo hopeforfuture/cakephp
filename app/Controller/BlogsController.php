@@ -8,7 +8,6 @@ class BlogsController extends AppController
 	{
 		parent::beforeFilter();
 		$this->Auth->allow();
-		$this->loadModel('Blog');
 	}
 	
 	public function index()

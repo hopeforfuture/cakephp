@@ -3,12 +3,12 @@ class BudgetmanagerController extends AppController
 {
 	public $helpers = array('Html', 'Form', 'Flash');
     public $components = array('Flash');
+    public $uses = array('Budget');
 	
 	public function beforeFilter() 
 	{
 		parent::beforeFilter();
 		$this->Auth->allow();
-		$this->loadModel('Budget');
 	}
 	
 	public function index()

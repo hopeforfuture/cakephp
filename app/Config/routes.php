@@ -53,6 +53,8 @@
 	
 	Router::connect('/member/signup', array('controller' => 'member', 'action' => 'add'));
 
+	Router::connect('/admin/category', array('controller' => 'category', 'action' => 'index'));
+
 /**
  * Load all plugin routes. See the CakePlugin documentation on
  * how to customize the loading of plugin routes.
