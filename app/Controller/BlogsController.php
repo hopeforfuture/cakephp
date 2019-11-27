@@ -207,15 +207,5 @@ class BlogsController extends AppController
 		}
 	}
 
-	public function getdata()
-	{
-		//$data = array('msg'=>'Request received');
-		//echo json_encode($data);
-		if($this->request->is('ajax')) {
-			print_r($this->request->data);
-			die;
-		}
-		
-	}
 }
 ?>

@@ -75,14 +75,8 @@
 			url: targeturl,
 			data: {name:'manojit',email:'test@gmail.com'},
 			dataType: "json",
-			crossDomain: true,
-			cache:false,
-			"headers":{
-				"accept": "application/json",
-				"Access-Control-Allow-Origin":"*"
-			},
 			success: function(data) {
-				console.log(data);
+				console.log(data.msg);
 			}
 		});
 
