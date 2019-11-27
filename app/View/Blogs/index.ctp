@@ -73,7 +73,7 @@
 		$.ajax({
 			type: "post",
 			url: targeturl,
-			data: {name:'manojit',email:'test@gmail.com'},
+			data: {name:'Manojit',email:'test@gmail.com'},
 			dataType: "json",
 			success: function(data) {
 				console.log(data.msg);

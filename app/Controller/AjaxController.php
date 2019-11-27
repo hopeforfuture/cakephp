@@ -12,7 +12,7 @@ class AjaxController extends AppController
 	public function index()
 	{
 		if($this->request->is('ajax')) {
-			$data = array('msg'=>'Request received');
+			$data['msg'] = "Request received by ".$this->request->data['name'];
 			echo json_encode($data);
 			die;
 		}
