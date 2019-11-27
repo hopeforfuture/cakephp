@@ -2,6 +2,7 @@
     'Add Post',
     array('controller' => 'posts', 'action' => 'add')
 ); ?>
+
 <table>
 	<thead>
 		<tr>

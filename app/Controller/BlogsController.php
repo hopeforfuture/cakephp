@@ -2,7 +2,7 @@
 class BlogsController extends AppController
 {
 	public $helpers = array('Html', 'Form', 'Flash');
-    public $components = array('Flash');
+    public $components = array('Flash', 'RequestHandler');
 	
 	public function beforeFilter() 
 	{
@@ -205,6 +205,17 @@ class BlogsController extends AppController
 			
 			return $this->redirect(array('action' => 'index'));
 		}
+	}
+
+	public function getdata()
+	{
+		//$data = array('msg'=>'Request received');
+		//echo json_encode($data);
+		if($this->request->is('ajax')) {
+			print_r($this->request->data);
+			die;
+		}
+		
 	}
 }
 ?>

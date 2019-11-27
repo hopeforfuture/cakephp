@@ -55,6 +55,8 @@
 
 	Router::connect('/admin/category', array('controller' => 'category', 'action' => 'index'));
 
+	Router::connect('/getdata', array('controller' => 'ajax', 'action' => 'index'));
+
 /**
  * Load all plugin routes. See the CakePlugin documentation on
  * how to customize the loading of plugin routes.

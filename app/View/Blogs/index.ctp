@@ -62,3 +62,29 @@
 	</tbody>
 	
 </table>
+
+<input type="hidden" id="baseurl" value="<?php echo  Router::url('/', true); ?>" />
+
+<script type="text/javascript">
+	$(document).ready(function(){
+
+		var targeturl =  "/cakephp/getdata";
+
+		$.ajax({
+			type: "post",
+			url: targeturl,
+			data: {name:'manojit',email:'test@gmail.com'},
+			dataType: "json",
+			crossDomain: true,
+			cache:false,
+			"headers":{
+				"accept": "application/json",
+				"Access-Control-Allow-Origin":"*"
+			},
+			success: function(data) {
+				console.log(data);
+			}
+		});
+
+	})
+</script>
