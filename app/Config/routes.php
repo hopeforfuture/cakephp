@@ -57,6 +57,8 @@
 
 	Router::connect('/getdata', array('controller' => 'ajax', 'action' => 'index'));
 
+	Router::connect('/blogs/view/:id', array('controller' => 'blogs', 'action' => 'view'), array('pass'=>array('id')));
+
 /**
  * Load all plugin routes. See the CakePlugin documentation on
  * how to customize the loading of plugin routes.

@@ -2,8 +2,8 @@
 class BlogsController extends AppController
 {
 	public $helpers = array('Html', 'Form', 'Flash');
-    public $components = array('Flash', 'RequestHandler');
-	
+    public $components = array('Flash');
+ 	
 	public function beforeFilter() 
 	{
 		parent::beforeFilter();
@@ -205,6 +205,25 @@ class BlogsController extends AppController
 			
 			return $this->redirect(array('action' => 'index'));
 		}
+	}
+
+
+	public function view($id = null)
+	{
+		if (!$id) 
+		{
+			throw new NotFoundException(__('Invalid blog'));
+		}
+		
+		$blog = $this->Blog->findById($id);
+		
+		
+		if (!$blog) 
+		{
+			throw new NotFoundException(__('Invalid blog'));
+		}
+
+		$this->set('blog', $blog);
 	}
 
 }

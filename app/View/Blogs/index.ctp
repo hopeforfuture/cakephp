@@ -46,11 +46,14 @@
 						'/blogs/edit/'.$blog['Blog']['id']
 					); 
 					echo $this->Html->link(
-						'Delete',
+						'Delete|',
 						'/blogs/remove/'.$blog['Blog']['id'],
 						array('confirm' => 'Confirm delete?')
 					);
-
+					echo $this->Html->link(
+						'View',
+						'/blogs/view/'.$blog['Blog']['id']
+					); 
 					?>
 					</td>
 				</tr>
@@ -63,7 +66,6 @@
 	
 </table>
 
-<input type="hidden" id="baseurl" value="<?php echo  Router::url('/', true); ?>" />
 
 <script type="text/javascript">
 	$(document).ready(function(){

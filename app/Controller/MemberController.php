@@ -11,25 +11,6 @@ class MemberController extends AppController
 		$this->Auth->allow(array('add', 'index'));
 	}
 	
-	public function gethobbies()
-	{
-		$hobbies = $this->Hobby->find('all');
-		$hobbyarr = array();
-		
-		if(!empty($hobbies))
-		{
-			foreach($hobbies as $hobby)
-			{
-				$id = $hobby['Hobby']['id'];
-				$name = $hobby['Hobby']['hobby_name'];
-				$hobbyarr[$id] = $name;
-			}
-		}
-		
-		
-		return $hobbyarr;
-	}
-	
 	public function index()
 	{
 		/*$members = $this->Member->find('all', array('conditions'=>array('Member.is_active'=>'1')));
@@ -62,7 +43,7 @@ class MemberController extends AppController
 		$food_habits = array('V'=>'Vegeterian', 'NV'=>'Non Vegeterian', 'E'=>'Eggiterian');
 		$smoking_habits = array('NS'=>'Non Smoker', 'RS'=>'Regular Smoker', 'OS'=>'Occational Smoker');
 		$drinking_habits = array('ND'=>'Non Drinker', 'RD'=>'Regular Drinker', 'SD'=>'Social Drinker');
-		$hobbies = $this->gethobbies();
+		$hobbies = $this->Hobby->gethobbies();
 		
 		if($this->request->is('post'))
 		{
@@ -195,7 +176,7 @@ class MemberController extends AppController
 		{
 			return $this->redirect(array('action'=>'index'));
 		}
-		$all_hobby = $this->gethobbies();
+		$all_hobby = $this->Hobby->gethobbies();
 		$hobby_str = '';
 		$memberinfo = $this->Member->findById($id);
 		$name = $memberinfo['Member']['name'];
@@ -283,7 +264,7 @@ class MemberController extends AppController
 		$food_habits = array('V'=>'Vegeterian', 'NV'=>'Non Vegeterian', 'E'=>'Eggiterian');
 		$smoking_habits = array('NS'=>'Non Smoker', 'RS'=>'Regular Smoker', 'OS'=>'Occational Smoker');
 		$drinking_habits = array('ND'=>'Non Drinker', 'RD'=>'Regular Drinker', 'SD'=>'Social Drinker');
-		$hobbies = $this->gethobbies();
+		$hobbies = $this->Hobby->gethobbies();
 		
 		$memberinfo = $this->Member->findById($id);
 		
