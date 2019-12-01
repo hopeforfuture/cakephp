@@ -741,3 +741,7 @@ pre {
 #url-rewriting-warning {
 	display:none;
 }
+
+.errmsg {
+	border: 1px solid red !important;
+}

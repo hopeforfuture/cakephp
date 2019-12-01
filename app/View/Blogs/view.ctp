@@ -60,6 +60,7 @@ echo $this->Html->link(
 				  		<td>
 				  			<?php echo $this->Form->text('name', array('name'=>'data[Comment][name]', 'value'=>'', 'required'=>true, 'class'=>'form-control')); ?>
 				  		</td>
+				  		<!--<td><span id="errname" class="errmsg" style="font-weight: bold;color: red;display: none;">Name Requred</span></td>-->
 			  	   </tr>
 
 			  	   <tr>
@@ -68,6 +69,7 @@ echo $this->Html->link(
 				  		<td>
 				  			<?php echo $this->Form->text('email', array('name'=>'data[Comment][email]', 'value'=>'', 'type'=>'email', 'required'=>true, 'class'=>'form-control')); ?>
 				  		</td>
+				  		<!--<td><span id="erremail" class="errmsg" style="font-weight: bold;color: red;display: none;">Valid email Requred</span></td>-->
 			  	   </tr>
 
 			  	   <tr>
@@ -76,6 +78,7 @@ echo $this->Html->link(
 			  	   	  <td>
 			  	   	  	   <?php echo $this->Form->textarea('comment', array('name'=>'data[Comment][comment]', 'required'=>true, 'class'=>'form-control', 'value'=>'', 'rows'=>'5', 'cols'=>'10')); ?>
 			  	   	  </td>
+			  	   	  <!--<td><span id="errcomment" class="errmsg" style="font-weight: bold;color: red;display: none;">Comment Requred</span></td>-->
 			  	   </tr>
 
 			  	   <tr>
@@ -100,12 +103,73 @@ echo $this->Html->link(
 <!-- Modal end -->
 
  <script type="text/javascript">
+
+ 	function isEmail(email) {
+	  	var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+	  	return regex.test(email);
+	}
+
   	$(document).ready(function(){
 
-  	  $("body").on("click", "#addcomment", function(){
-  	  	  $("#commentModal .form-control").val('');
-  	  	  $("#commentModal").modal();
-  	  });
+	  	  $("body").on("click", "#addcomment", function(){
+
+	  	  	  $("#commentModal .form-control").each(function() {
+	  	  	  	   $(this).val('');
+	  	  	  	   if($(this).hasClass('errmsg')) {
+	  	  	  	   	  $(this).removeClass('errmsg');
+	  	  	  	   }
+	  	  	  	   if($(this).attr('title')) {
+	  	  	  	   	  $(this).removeAttr('title');
+	  	  	  	   }
+	  	  	  });
+
+	  	  	  $("#commentModal").modal();
+	  	  });
+
+	  	  $("body").on("click", "#btnSave", function(){
+	  	  	  var name = $.trim($("#name").val());
+	  	  	  var email = $.trim($("#email").val());
+	  	  	  var comment = $.trim($("#comment").val());
+	  	  	  var blog_id = $.trim($("#blog_id").val());
+	  	  	  var flag = true;
+
+	  	  	  if(name == '') {
+	  	  	  
+	  	  	  	 $("#name").attr('title', 'Required');
+	  	  	  	 $("#name").addClass("errmsg");
+	  	  	  	 flag = false;
+	  	  	  }
+	  	  	  else {
+	  	  	  	  $("#name").removeAttr('title');
+	  	  	  	  $("#name").removeClass("errmsg");
+	  	  	  }
+
+	  	  	  if (email == '') {
+	  	  	  	 $("#email").attr('title', 'Required');
+	  	  	  	 $("#email").addClass("errmsg");
+	  	  	  	 flag = false;
+	  	  	  }
+	  	  	  else if(!isEmail(email)) {
+	  	  	  	 $("#email").attr('title', 'Invalid email');
+	  	  	  	 $("#email").addClass("errmsg");
+	  	  	  	 flag = false;
+	  	  	  }
+	  	  	  else {
+	  	  	  	  $("#email").removeAttr('title');
+	  	  	  	  $("#email").removeClass("errmsg");
+	  	  	  }
+
+	  	  	  if(comment == '') {
+	  	  	  	 $("#comment").attr('title', 'Required');
+	  	  	  	 $("#comment").addClass("errmsg");
+	  	  	  	 flag = false;
+	  	  	  }
+	  	  	  else {
+	  	  	  	  $("#comment").removeAttr('title');
+	  	  	  	  $("#comment").removeClass("errmsg");
+	  	  	  }
+
+	  	  });
   		
   	});
  </script>
