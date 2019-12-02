@@ -1,0 +1,58 @@
+Array
+(
+    [u_name] => test
+    [u_email] => test@gmail.com
+    [u_comment] => test comment
+    [blog_id] => 2
+)
+
+Array
+(
+    [Blog] => Array
+        (
+            [id] => 2
+            [title] => Bhagawat Gita: A power house
+            [content] => lorem ipsum is the dummy text
+            [thumb] => 1564127927.jpg
+            [created] => 2019-07-25 13:40:27
+            [updated] => 2019-07-26 13:28:47
+        )
+
+    [Comment] => Array
+        (
+            [0] => Array
+                (
+                    [id] => 3
+                    [comment] => Test Comment
+                    [blog_id] => 2
+                    [name] => Test
+                    [email] => demo@gmail.com
+                    [created_at] => 2019-12-02 13:50:12
+                    [updated_at] => 2019-12-02 13:50:12
+                )
+
+            [1] => Array
+                (
+                    [id] => 2
+                    [comment] => Bhagawat Gita can solve many of our problems.
+                    [blog_id] => 2
+                    [name] => Manojit
+                    [email] => mnbl87@gmail.com
+                    [created_at] => 2019-12-02 11:25:30
+                    [updated_at] => 2019-12-02 11:25:30
+                )
+
+            [2] => Array
+                (
+                    [id] => 1
+                    [comment] => I like Bhagawat Gita
+                    [blog_id] => 2
+                    [name] => Manojit
+                    [email] => test@gmail.com
+                    [created_at] => 2019-12-02 11:18:27
+                    [updated_at] => 2019-12-02 11:18:27
+                )
+
+        )
+
+)

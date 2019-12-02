@@ -47,6 +47,7 @@ echo $this->Html->link(
 			<div class="modal-header">
 			  <button type="button" class="close" data-dismiss="modal">&times;</button>
 			  <h4 class="modal-title">Add Comment</h4>
+			  <p id="cmntmsg" style="color: red;font-weight: bold;visibility: hidden;">Comment saved successfully.</p>
 			</div>
 
 			<div class="modal-body">
@@ -60,7 +61,6 @@ echo $this->Html->link(
 				  		<td>
 				  			<?php echo $this->Form->text('name', array('name'=>'data[Comment][name]', 'value'=>'', 'required'=>true, 'class'=>'form-control')); ?>
 				  		</td>
-				  		<!--<td><span id="errname" class="errmsg" style="font-weight: bold;color: red;display: none;">Name Requred</span></td>-->
 			  	   </tr>
 
 			  	   <tr>
@@ -69,7 +69,6 @@ echo $this->Html->link(
 				  		<td>
 				  			<?php echo $this->Form->text('email', array('name'=>'data[Comment][email]', 'value'=>'', 'type'=>'email', 'required'=>true, 'class'=>'form-control')); ?>
 				  		</td>
-				  		<!--<td><span id="erremail" class="errmsg" style="font-weight: bold;color: red;display: none;">Valid email Requred</span></td>-->
 			  	   </tr>
 
 			  	   <tr>
@@ -78,7 +77,6 @@ echo $this->Html->link(
 			  	   	  <td>
 			  	   	  	   <?php echo $this->Form->textarea('comment', array('name'=>'data[Comment][comment]', 'required'=>true, 'class'=>'form-control', 'value'=>'', 'rows'=>'5', 'cols'=>'10')); ?>
 			  	   	  </td>
-			  	   	  <!--<td><span id="errcomment" class="errmsg" style="font-weight: bold;color: red;display: none;">Comment Requred</span></td>-->
 			  	   </tr>
 
 			  	   <tr>
@@ -109,18 +107,36 @@ echo $this->Html->link(
 	  	return regex.test(email);
 	}
 
+	function loadcomments() {
+		$("#commentModal .close").click();
+		var targeturl = "/cakephp/loadcomments";
+
+		$.ajax({
+			type: "POST",
+			url: targeturl,
+			data: {blog_id:$("#blog_id").val()},
+			dataType: "json",
+			success: function(data) {
+				
+			}
+		});
+	}
+
   	$(document).ready(function(){
 
 	  	  $("body").on("click", "#addcomment", function(){
 
 	  	  	  $("#commentModal .form-control").each(function() {
 	  	  	  	   $(this).val('');
+	  	  	  	   $("#cmntmsg").css("visibility", "hidden");
+
 	  	  	  	   if($(this).hasClass('errmsg')) {
 	  	  	  	   	  $(this).removeClass('errmsg');
 	  	  	  	   }
 	  	  	  	   if($(this).attr('title')) {
 	  	  	  	   	  $(this).removeAttr('title');
 	  	  	  	   }
+
 	  	  	  });
 
 	  	  	  $("#commentModal").modal();
@@ -167,6 +183,27 @@ echo $this->Html->link(
 	  	  	  else {
 	  	  	  	  $("#comment").removeAttr('title');
 	  	  	  	  $("#comment").removeClass("errmsg");
+	  	  	  }
+
+	  	  	  //if form is validated then call ajax
+	  	  	  if (flag) {
+	  	  	  	  var targeturl = "/cakephp/comment/save";
+
+	  	  	  	  $.ajax({
+	  	  	  	  	 type: "POST",
+	  	  	  	  	 url: targeturl,
+	  	  	  	  	 data: {u_name:name, u_email: email, u_comment:comment, blog_id:$("#blog_id").val()},
+	  	  	  	  	 dataType: "json",
+	  	  	  	  	 success: function(response) {
+	  	  	  	  	 	if(response.status) {
+	  	  	  	  	 		$("#name").val('');
+	  	  	  	  	 		$("#email").val('');
+	  	  	  	  	 		$("#comment").val('');
+	  	  	  	  	 		$("#cmntmsg").css("visibility", "visible");
+	  	  	  	  	 		setTimeout(loadcomments, 3000);
+	  	  	  	  	 	}
+	  	  	  	  	 }
+	  	  	  	  });
 	  	  	  }
 
 	  	  });

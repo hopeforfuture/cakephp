@@ -57,6 +57,10 @@
 
 	Router::connect('/getdata', array('controller' => 'ajax', 'action' => 'index'));
 
+	Router::connect('/comment/save', array('controller' => 'ajax', 'action' => 'savecomment'));
+
+	Router::connect('/loadcomments', array('controller' => 'ajax', 'action' => 'loadcomments'));
+
 	Router::connect('/blogs/view/:id', array('controller' => 'blogs', 'action' => 'view'), array('pass'=>array('id')));
 
 /**
