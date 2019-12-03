@@ -44,7 +44,19 @@ class AjaxController extends AppController
 		if ($this->request->is('ajax')) {
 			$blog_id = $this->request->data['blog_id'];
 			$bloginfo = $this->Blog->findById($blog_id);
-			print_r($bloginfo);
+			$data = array();
+			
+
+			if(!empty($bloginfo['Comment'])) {
+				$comments = $bloginfo['Comment'];
+				foreach($comments as $comment) {
+					$comment['created_at'] = date('F j,Y H:i:s', strtotime($comment['created_at']));
+					$comment['comment'] = htmlspecialchars($comment['comment'], ENT_QUOTES, 'UTF-8');
+					$data[] = $comment;
+				}
+			}
+
+			echo json_encode(array('comments'=>$data));
 			die;
 		}
 	}

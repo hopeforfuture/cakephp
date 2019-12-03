@@ -217,7 +217,6 @@ class BlogsController extends AppController
 		
 		$blog = $this->Blog->findById($id);
 		
-		
 		if (!$blog) 
 		{
 			throw new NotFoundException(__('Invalid blog'));

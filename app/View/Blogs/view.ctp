@@ -100,6 +100,29 @@ echo $this->Html->link(
 </div>
 <!-- Modal end -->
 
+<div id="commentsection">
+	<img src="<?php echo $this->webroot.'img/loading.png'; ?>" class="load" style="visibility: hidden;" />
+	<table class="blogcomments">
+		<?php
+		if(!empty($blog['Comment']))
+		{
+			foreach($blog['Comment'] as $comment) {
+			?>
+				<tr>
+					<td>
+						<?php echo $comment['name']." says:<br/>"; ?>
+						<?php echo htmlspecialchars($comment['comment'], ENT_QUOTES, 'UTF-8'); ?><br/>
+						<?php echo date('F j,Y H:i:s', strtotime($comment['created_at'])); ?>
+					</td>
+				</tr>
+			<?php
+			}
+		}
+		?>
+	</table>
+</div>
+
+
  <script type="text/javascript">
 
  	function isEmail(email) {
@@ -109,6 +132,8 @@ echo $this->Html->link(
 
 	function loadcomments() {
 		$("#commentModal .close").click();
+		$("#commentsection .load").css('visibility','visible');
+
 		var targeturl = "/cakephp/loadcomments";
 
 		$.ajax({
@@ -117,7 +142,21 @@ echo $this->Html->link(
 			data: {blog_id:$("#blog_id").val()},
 			dataType: "json",
 			success: function(data) {
-				
+				var comments = data.comments;
+				var output = "";
+				$.each(comments, function(i, item){
+					output+="<tr>";
+					output+="<td>"
+					output+=item.name+" says: <br/>";
+					output+=item.comment+"<br/>" + item.created_at;
+					output+="</td>"
+					output+="</tr>";
+				});
+
+				console.log(output);
+
+				$("#commentsection .load").css('visibility','hidden');
+				$("#commentsection .blogcomments").html(output);
 			}
 		});
 	}
