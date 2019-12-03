@@ -63,6 +63,10 @@
 
 	Router::connect('/blogs/view/:id', array('controller' => 'blogs', 'action' => 'view'), array('pass'=>array('id')));
 
+	Router::connect('/session/set', array('controller' => 'sessiontest', 'action' => 'setSession'));
+
+	Router::connect('/session/get', array('controller' => 'sessiontest', 'action' => 'getSession'));
+
 /**
  * Load all plugin routes. See the CakePlugin documentation on
  * how to customize the loading of plugin routes.
