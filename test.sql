@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 31, 2019 at 01:41 PM
+-- Generation Time: Dec 04, 2019 at 05:54 AM
 -- Server version: 10.1.36-MariaDB
 -- PHP Version: 7.2.11
 
@@ -21,6 +21,105 @@ SET time_zone = "+00:00";
 --
 -- Database: `test`
 --
+
+DELIMITER $$
+--
+-- Procedures
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CountMembers` (OUT `total_members` INT)  BEGIN
+  SELECT COUNT(*) INTO total_members FROM tblmembers;
+  SELECT total_members;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `dynamicsp` (IN `food` VARCHAR(5), IN `smoke` VARCHAR(5), IN `drink` VARCHAR(5))  BEGIN
+	DECLARE cond_food VARCHAR(100);
+  DECLARE cond_smoke VARCHAR(100);
+  DECLARE cond_drink VARCHAR(100);
+  DECLARE flag_food BOOL DEFAULT FALSE;
+  DECLARE flag_smoke BOOL DEFAULT FALSE;
+  -- DECLARE flag_drink BOOL DEFAULT FALSE;
+
+  DECLARE sql_query VARCHAR(255);
+
+  SET sql_query = "SELECT * FROM tblprofile WHERE ";
+
+
+  -- If food is present apply condition for food and set flag_food to true
+
+  IF (LENGTH(food) > 0) THEN
+    SET cond_food = CONCAT("food_habit='",food,"' ");
+    SET flag_food = TRUE;
+    SET sql_query = CONCAT(sql_query, cond_food);
+  END IF;
+
+
+  -- If smoke is present apply condition for smoking and set flag_smoke to true
+
+  IF (LENGTH(smoke) > 0)  THEN
+    SET flag_smoke = TRUE;
+    SET cond_smoke = CONCAT(" smoking_habit = '",smoke,"' ");
+    CASE flag_food
+      WHEN TRUE THEN
+        SET sql_query = CONCAT(sql_query, " AND ", cond_smoke);
+      ELSE
+        SET sql_query = CONCAT(sql_query, cond_smoke);
+    END CASE;
+  END IF;
+
+  -- If drink is present apply condition for drinking
+
+  IF (LENGTH(drink) > 0)  THEN
+    SET cond_drink = CONCAT(" drinking_habit='",drink,"' ");
+
+    IF ( flag_food IS FALSE AND flag_smoke IS FALSE ) THEN
+      SET sql_query = CONCAT(sql_query, cond_drink);
+      ELSE
+        SET sql_query = CONCAT(sql_query, " AND ", cond_drink);
+    END IF;
+
+  END IF;
+
+  SET @t1 = sql_query;
+
+  PREPARE stmt FROM @t1;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GetAllMembers` ()  BEGIN
+  SELECT tm.id, tm.name, tm.email, tp.full_address, tp.hobby, tp.food_habit, tp.smoking_habit, tp.drinking_habit, tp.profile_img FROM tblmembers AS tm JOIN
+  tblprofile AS tp ON tm.id = tp.member_id ORDER BY tm.id DESC;
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GetStatesByCountry` (IN `CountryCode` INT)  BEGIN
+  SELECT state_id, state_name FROM states WHERE country_id = CountryCode;
+END$$
+
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `admins`
+--
+
+CREATE TABLE `admins` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email_verified_at` timestamp NULL DEFAULT NULL,
+  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `remember_token` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `admins`
+--
+
+INSERT INTO `admins` (`id`, `name`, `email`, `email_verified_at`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES
+(1, 'Administrator', 'admin@gmail.com', NULL, '$2y$10$j52Nz69cE6WQVSOiNclhZu45dxLUEdckhqiZFIdgf2YTQeB9XSlyi', NULL, '2019-08-29 22:07:03', '2019-08-29 22:07:03');
 
 -- --------------------------------------------------------
 
@@ -81,7 +180,8 @@ INSERT INTO `budget_managers` (`id`, `name`, `created`, `updated`) VALUES
 (4, 'Jerome K Jerome', '2019-07-21 18:04:54', '2019-07-23 09:06:28'),
 (5, 'Benn Stokes', '2019-07-21 18:05:21', '2019-07-21 12:35:21'),
 (6, 'Jeff Bezos', '2019-07-21 18:05:32', '2019-07-21 12:54:53'),
-(8, 'Chris Harris', '2019-07-21 18:27:49', '2019-07-23 07:07:15');
+(8, 'Chris Harris', '2019-07-21 18:27:49', '2019-07-23 07:07:15'),
+(9, 'Steve Jobes', '2019-11-24 12:12:03', '2019-11-24 06:42:03');
 
 -- --------------------------------------------------------
 
@@ -148,7 +248,8 @@ INSERT INTO `employees` (`id`, `emp_name`, `emp_email`, `emp_phone`, `emp_salary
 (1, 'Manojit Nandi', 'manojit87@gmail.com', '9230459769', 7000),
 (2, 'Doyeta Chakrovarty', 'doyeta.piyali@gmail.com', '9903772144', 5000),
 (3, 'Anusua Putatunda', 'anu.csc@gmail.com', '9007175423', 10000),
-(4, 'Rahul', 'rahul@gmail.com', '9123409786', 7000);
+(4, 'Rahul Biswas', 'rahul@gmail.com', '9123409786', 70000),
+(5, 'Sourav Nandi', 'souravn@gmail.com', '9831109804', 100000);
 
 -- --------------------------------------------------------
 
@@ -183,6 +284,32 @@ INSERT INTO `images` (`id`, `img_name`, `created`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `members`
+--
+
+CREATE TABLE `members` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email_verified_at` timestamp NULL DEFAULT NULL,
+  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `job_role` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `avatar` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `remember_token` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `members`
+--
+
+INSERT INTO `members` (`id`, `name`, `email`, `email_verified_at`, `password`, `job_role`, `avatar`, `remember_token`, `created_at`, `updated_at`) VALUES
+(1, 'Manojit Nandi', 'test@gmail.com', NULL, '$2y$10$C2KWihjLejb0OI/L.e2miOyv1Fm.e75ZDPqCrUcnJGyQ6sIvo4IQm', 'Normal User', NULL, NULL, '2019-08-29 22:23:55', '2019-08-29 22:23:55');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `migrations`
 --
 
@@ -199,7 +326,29 @@ CREATE TABLE `migrations` (
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (1, '2014_10_12_000000_create_users_table', 1),
 (2, '2014_10_12_100000_create_password_resets_table', 1),
-(3, '2018_11_28_114148_create_posts_table', 1);
+(3, '2018_11_28_114148_create_posts_table', 1),
+(4, '2019_08_30_032734_create_admins_table', 2),
+(6, '2019_08_30_034244_create_members_table', 3);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `orderabovetwohundred`
+-- (See below for the actual view)
+--
+CREATE TABLE `orderabovetwohundred` (
+`id` int(11)
+,`txn_id` varchar(255)
+,`order_id` int(11)
+,`payment_gross` decimal(12,2)
+,`currency_code` varchar(5)
+,`payer_id` varchar(20)
+,`payer_name` varchar(50)
+,`payer_email` varchar(100)
+,`payer_country` varchar(5)
+,`payment_status` varchar(10)
+,`created` timestamp
+);
 
 -- --------------------------------------------------------
 
@@ -242,7 +391,8 @@ INSERT INTO `posts` (`id`, `title`, `content`, `created`, `modified`) VALUES
 (31, 'Bhagawat Gita is the source of my inspiration', 'I love Bhagawat Gita.', '2019-07-13 17:16:53', '2019-07-13 17:16:53'),
 (32, 'Cakephp blog tutorial', 'lorem ipsum is the dummy text.', '2019-07-13 17:17:52', '2019-07-13 18:05:47'),
 (39, 'Another php framework.', 'lorem ipsum is the dummy text in industry. Cakephp is the first framework in PHP  industry.', '2019-07-21 13:24:32', '2019-07-21 13:32:01'),
-(40, 'lorem ipsum', 'lorem ipsum is the dummy text in industry.', '2019-07-21 13:32:51', '2019-07-21 13:32:51');
+(40, 'lorem ipsum', 'lorem ipsum is the dummy text in industry.', '2019-07-21 13:32:51', '2019-07-21 13:32:51'),
+(41, 'Demo post', 'lorem ipsum is the dummy text in industry', '2019-08-30 04:12:59', '2019-08-30 04:12:59');
 
 -- --------------------------------------------------------
 
@@ -254,7 +404,7 @@ CREATE TABLE `products` (
   `id` int(11) NOT NULL,
   `name` varchar(250) NOT NULL,
   `details` varchar(250) NOT NULL,
-  `price` int(11) NOT NULL,
+  `price` decimal(11,2) NOT NULL,
   `product_image` varchar(250) NOT NULL,
   `status` enum('1','0') NOT NULL DEFAULT '1' COMMENT '1 for active 0 for inactive',
   `created` datetime NOT NULL,
@@ -266,13 +416,19 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `name`, `details`, `price`, `product_image`, `status`, `created`, `modified`) VALUES
-(1, 'Samsung Galaxy J5', 'This is an awesome smartphone', 130, '1546608455.jpg', '1', '2019-01-04 18:57:35', '2019-01-04 18:57:35'),
-(2, 'Samsung Galaxy S5', 'This is another smartphone', 140, '1546609150.jpg', '1', '2019-01-04 19:09:10', '2019-01-04 19:09:10'),
-(3, 'Samsung Galaxy S7', 'This is a great smartphone', 115, '1546609456.jpg', '1', '2019-01-04 19:14:16', '2019-01-04 19:14:16'),
-(4, 'Micromax Canvas 6', 'lorem ipsum is the dummy text', 100, '1546609603.jpg', '1', '2019-01-04 19:16:43', '2019-01-04 19:16:43'),
-(5, 'Micromax Nitro 3', 'A micromax smartphone', 100, '1546610346.jpg', '1', '2019-01-04 19:29:07', '2019-01-09 13:18:28'),
-(6, 'Oppo smartphone', 'lorem ipsum is the dummy text', 170, '1546613797.jpg', '1', '2019-01-04 20:26:37', '2019-03-16 19:59:40'),
-(7, 'Vivo V5 Smartphone', 'This is a vivo smartphone', 165, '1552747300.jpg', '1', '2019-01-04 20:29:22', '2019-03-16 20:23:19');
+(1, 'Samsung Galaxy J5', 'This is an awesome smartphone', '130.00', '1546608455.jpg', '1', '2019-01-04 18:57:35', '2019-01-04 18:57:35'),
+(2, 'Samsung Galaxy S5', 'This is another smartphone', '140.00', '1546609150.jpg', '1', '2019-01-04 19:09:10', '2019-01-04 19:09:10'),
+(3, 'Samsung Galaxy S7', 'This is a great smartphone', '115.00', '1546609456.jpg', '1', '2019-01-04 19:14:16', '2019-01-04 19:14:16'),
+(4, 'Micromax Canvas 6', 'lorem ipsum is the dummy text', '100.00', '1546609603.jpg', '1', '2019-01-04 19:16:43', '2019-01-04 19:16:43'),
+(5, 'Micromax Nitro 3', 'A micromax smartphone', '100.00', '1567238058.jpg', '1', '2019-01-04 19:29:07', '2019-08-31 07:54:18'),
+(6, 'Oppo smartphone', 'lorem ipsum is the dummy text', '170.00', '1546613797.jpg', '1', '2019-01-04 20:26:37', '2019-03-16 19:59:40'),
+(7, 'Vivo V5 Smartphone', 'This is a vivo smartphone', '165.00', '1552747300.jpg', '1', '2019-01-04 20:29:22', '2019-03-16 20:23:19'),
+(8, 'One plus smartphone', 'lorem ipsum is the dummy text.', '9000.00', '1564731670.jpg', '1', '2019-08-02 13:11:10', '2019-08-02 13:11:10'),
+(9, 'DELL laptop', 'A laptop from DELL for Game lovers', '500.00', '1567231584.jpg', '1', '2019-08-31 06:06:24', '2019-08-31 07:50:00'),
+(10, 'Lenevo Laptop for developers', 'lorem ipsum is the dummy text in industry.', '505.00', '1567237699.jpg', '1', '2019-08-31 06:22:02', '2019-08-31 07:48:19'),
+(11, 'Lenevo K3 Note', 'lorem ipsum is the dummy text for industry.', '501.00', '1567232872.jpg', '1', '2019-08-31 06:27:52', '2019-08-31 06:27:52'),
+(12, 'Lenevo K5 Note', 'lorem ipsum is the dummy text in industry', '530.50', '1567250981.jpg', '1', '2019-08-31 06:31:09', '2019-08-31 11:29:41'),
+(13, 'Lenevo K7 Note', 'lorem ipsum is the dummy text in industry.', '510.00', '1567250736.jpg', '1', '2019-08-31 06:34:37', '2019-08-31 11:26:03');
 
 -- --------------------------------------------------------
 
@@ -347,7 +503,8 @@ CREATE TABLE `tbladmin` (
 --
 
 INSERT INTO `tbladmin` (`admin_id`, `admin_name`, `admin_username`, `admin_password`, `role`, `created`, `updated`) VALUES
-(1, 'Site Admin', 'admin', '49c86917806787124d94d9bac68fc0b8', 'admin', '2019-07-31 15:33:31', '2019-07-31 15:33:18');
+(1, 'Site Admin', 'admin', '3549bf1d87002b3e6fd21d1b152439ca', 'admin', '2019-07-31 15:33:31', '2019-11-24 16:03:25'),
+(2, 'Site Admin', 'manojit', '3549bf1d87002b3e6fd21d1b152439ca', 'admin', '2019-12-04 10:20:39', '2019-12-04 10:20:43');
 
 -- --------------------------------------------------------
 
@@ -373,8 +530,7 @@ INSERT INTO `tblblog` (`id`, `title`, `content`, `thumb`, `created`, `updated`) 
 (2, 'Bhagawat Gita: A power house', 'lorem ipsum is the dummy text', '1564127927.jpg', '2019-07-25 13:40:27', '2019-07-26 07:58:47'),
 (4, 'Cakephp upload', 'How to upload and save file in php.', '1564128290.jpg', '2019-07-26 03:39:28', '2019-07-26 08:04:50'),
 (5, 'Cakephp is a nice framework', 'Cakephp supports RAD process.', '1564127880.jpg', '2019-07-26 03:43:16', '2019-07-26 07:58:00'),
-(6, 'lorem ipsum.', 'lorem ipsum is the dummy text for industry.', '1564127788.jpg', '2019-07-26 03:48:13', '2019-07-26 07:56:28'),
-(7, 'bnvbnnvbn', 'vvbnbvnvnnvbn', '1564388637.jpg', '2019-07-29 13:53:57', '2019-07-29 08:23:57');
+(6, 'lorem ipsum.', 'lorem ipsum is the dummy text for industry.', '1574575592.jpg', '2019-07-26 03:48:13', '2019-11-24 06:06:32');
 
 -- --------------------------------------------------------
 
@@ -465,7 +621,68 @@ INSERT INTO `tblcart` (`id`, `unique_id`, `item_id`, `item_quantity`, `item_pric
 (83, '1562740470_8029243', 2, 1, 140, 1562740470, '2019-07-10 06:34:30'),
 (84, '1562740470_8029243', 7, 1, 165, 1562740480, '2019-07-10 06:34:40'),
 (85, '1562743221_2410279', 4, 1, 100, 1562743221, '2019-07-10 07:20:21'),
-(86, '1562909745_6112445', 2, 1, 140, 1562909745, '2019-07-12 05:35:45');
+(86, '1562909745_6112445', 2, 1, 140, 1562909745, '2019-07-12 05:35:45'),
+(87, '1572069274_8296424', 1, 1, 130, 1572069274, '2019-10-26 05:54:34'),
+(88, '1572072049_9648085', 2, 1, 140, 1572072049, '2019-10-26 06:40:49'),
+(90, '1572079068_4247194', 2, 1, 140, 1572079068, '2019-10-26 08:37:48'),
+(91, '1572079090_1551562', 2, 1, 140, 1572079090, '2019-10-26 08:38:10'),
+(94, '1572073377_210230', 7, 1, 165, 1572091736, '2019-10-26 12:08:56'),
+(95, '1572073377_210230', 1, 1, 130, 1572091744, '2019-10-26 12:09:04'),
+(100, '1572158974_3788936', 2, 1, 140, 1572165690, '2019-10-27 08:41:30'),
+(101, '1572168374_3649706', 1, 1, 130, 1572168374, '2019-10-27 09:26:14'),
+(102, '1572170522_2641975', 1, 1, 130, 1572170522, '2019-10-27 10:02:02'),
+(103, '1572170522_2641975', 5, 1, 100, 1572170556, '2019-10-27 10:02:36'),
+(104, '1572170522_2641975', 2, 1, 140, 1572170563, '2019-10-27 10:02:43'),
+(105, '1572173233_8642833', 3, 1, 115, 1572173233, '2019-10-27 10:47:13'),
+(106, '1572173648_7267257', 4, 1, 100, 1572173648, '2019-10-27 10:54:08'),
+(107, '1572173648_7267257', 1, 1, 130, 1572173660, '2019-10-27 10:54:20'),
+(108, '1572173867_247829', 6, 1, 170, 1572173867, '2019-10-27 10:57:47'),
+(109, '1572174490_6420753', 11, 1, 501, 1572174490, '2019-10-27 11:08:10'),
+(110, '1572175224_3450846', 9, 1, 500, 1572175224, '2019-10-27 11:20:24'),
+(111, '1572175224_3450846', 4, 1, 100, 1572175235, '2019-10-27 11:20:35'),
+(112, '1572178283_6159598', 13, 1, 510, 1572178283, '2019-10-27 12:11:23'),
+(113, '1572410918_692127', 3, 1, 115, 1572410918, '2019-10-30 04:48:38');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblcomments`
+--
+
+CREATE TABLE `tblcomments` (
+  `id` int(11) NOT NULL,
+  `comment` text NOT NULL,
+  `blog_id` int(11) NOT NULL,
+  `name` varchar(150) NOT NULL,
+  `email` varchar(150) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `tblcomments`
+--
+
+INSERT INTO `tblcomments` (`id`, `comment`, `blog_id`, `name`, `email`, `created_at`, `updated_at`) VALUES
+(1, 'I like Bhagawat Gita', 2, 'Manojit', 'test@gmail.com', '2019-12-02 11:18:27', '2019-12-02 11:18:27'),
+(2, 'Bhagawat Gita can solve many of our problems.', 2, 'Manojit', 'mnbl87@gmail.com', '2019-12-02 11:25:30', '2019-12-02 11:25:30'),
+(3, 'Test Comment', 2, 'Test', 'demo@gmail.com', '2019-12-02 13:50:12', '2019-12-02 13:50:12'),
+(4, 'Cakephp is a nice framework.', 4, 'Manojit', 'mnbl87@gmail.com', '2019-12-03 10:21:55', '2019-12-03 10:21:55'),
+(5, 'lorem ipsum.', 4, 'Manojit', 'test@gmail.com', '2019-12-03 10:22:45', '2019-12-03 10:22:45'),
+(6, 'test comment', 4, 'Test', 'test@gmail.com', '2019-12-03 10:24:06', '2019-12-03 10:24:06'),
+(7, 'test comment', 4, 'Test', 'test@gmail.com', '2019-12-03 10:24:38', '2019-12-03 10:24:38'),
+(8, 'I will work on cakephp.', 4, 'Manojit', 'mnbl87@gmail.com', '2019-12-03 10:26:33', '2019-12-03 10:26:33'),
+(9, 'Bhagawat Gita helps me to overcome the depression.', 2, 'Manojit Nandi', 'mnbl87@gmail.com', '2019-12-03 10:57:01', '2019-12-03 10:57:01'),
+(10, 'I am a ardent follower of ISKCON.', 2, 'Chinmoy Nag', 'chinmoy@test.com', '2019-12-03 10:58:28', '2019-12-03 10:58:28'),
+(11, 'Cakephp helps me to get a job.', 1, 'Manojit Nandi', 'mnbl87@gmail.com', '2019-12-03 11:00:05', '2019-12-03 11:00:05'),
+(12, '<script>alert(\'Hello Cakephp\');</script>', 1, 'Manojit', 'test@yahoo.com', '2019-12-03 11:02:05', '2019-12-03 11:02:05'),
+(13, 'Cakephp is the first modern mvc framework in PHP language.', 4, 'Manojit', 'mnbl87@gmail.com', '2019-12-03 11:13:50', '2019-12-03 11:13:50'),
+(14, 'Cakephp is fun.', 4, 'Manojit', 'mnbl87@gmail.com', '2019-12-03 11:15:58', '2019-12-03 11:15:58'),
+(15, 'Cakephp is used in rapid application development process.', 5, 'Manojit', 'smojo.manojit@gmail.com', '2019-12-03 16:30:22', '2019-12-03 16:30:22'),
+(16, 'Cakephp association makes our life easy.', 5, 'Manojit', 'manojit87@gmail.com', '2019-12-03 17:47:54', '2019-12-03 17:47:54'),
+(17, 'Cakephp session is easy to use.', 5, 'Manojit', 'mnbl87@gmail.com', '2019-12-03 17:49:20', '2019-12-03 17:49:20'),
+(18, 'Cakephp plugin is bit difficult.', 5, 'Anusua', 'anusua@gmail.com', '2019-12-03 17:51:03', '2019-12-03 17:51:03'),
+(19, 'lorem ipsum is the dummy text.', 5, 'Manojit', 'test@test.com', '2019-12-03 17:55:52', '2019-12-03 17:55:52');
 
 -- --------------------------------------------------------
 
@@ -511,15 +728,18 @@ CREATE TABLE `tblmembers` (
 --
 
 INSERT INTO `tblmembers` (`id`, `name`, `email`, `password`, `is_active`, `created`, `modified`) VALUES
-(10, 'Doyeta Chakravarti', 'doyeta.piyali@gmail.com', '7a6583060583f77fa4192cdec816d664', '1', '2019-07-29 16:08:05', '2019-07-29 10:38:05'),
+(10, 'Doyeta Chakravarti Biswas', 'doyeta.piyali@gmail.com', '7a6583060583f77fa4192cdec816d664', '1', '2019-07-29 16:08:05', '2019-08-05 03:46:44'),
 (11, 'Manojit Nandi', 'manojit.nandi@gmail.com', '49c86917806787124d94d9bac68fc0b8', '1', '2019-07-29 16:10:18', '2019-07-29 10:40:18'),
-(12, 'Sanjay Das', 'sanjay.d@gmail.com', '49c86917806787124d94d9bac68fc0b8', '1', '2019-07-29 16:22:52', '2019-07-29 10:52:52'),
+(12, 'Sanjay Patra', 'sanjay.d@gmail.com', '49c86917806787124d94d9bac68fc0b8', '1', '2019-07-29 16:22:52', '2019-08-05 04:01:38'),
 (13, 'Kaustav Nandi', 'kaustav.n@gmail.com', '7a6583060583f77fa4192cdec816d664', '1', '2019-07-29 16:24:39', '2019-07-29 10:54:39'),
-(14, 'Manojit Nandi', 'mnbl87@gmail.com', '49c86917806787124d94d9bac68fc0b8', '1', '2019-07-30 15:05:58', '2019-07-30 12:36:56'),
+(14, 'Manojit Nandi', 'mnbl87@gmail.com', 'cc03e747a6afbbcbf8be7668acfebee5', '1', '2019-07-30 15:05:58', '2019-11-24 09:37:18'),
 (15, 'Manojit Nandi', 'manojit87@gmail.com', '49c86917806787124d94d9bac68fc0b8', '1', '2019-07-30 15:18:58', '2019-07-30 09:48:58'),
 (16, 'bbcvcbcv', 'hello@gmail.com', '49c86917806787124d94d9bac68fc0b8', '1', '2019-07-30 18:09:31', '2019-07-31 07:46:51'),
-(17, 'Manojit Nandi', 'manojit.n@expressgrp.com', '4d3ae59403f158583db52b7146bf288deeb680d5873bc6b3185bfdfd44105559', '1', '2019-07-31 11:16:53', '2019-07-31 05:46:53'),
-(18, 'Sourav Nandi', 'souravn@gmail.com', '49c86917806787124d94d9bac68fc0b8', '1', '2019-07-31 13:22:07', '2019-07-31 07:52:07');
+(17, 'Manojit Nandi', 'manojit.n@expressgrp.com', '49c86917806787124d94d9bac68fc0b8', '1', '2019-07-31 11:16:53', '2019-08-01 05:20:38'),
+(18, 'Sourav Nandi', 'souravn@gmail.com', '49c86917806787124d94d9bac68fc0b8', '1', '2019-07-31 13:22:07', '2019-08-05 03:37:12'),
+(19, 'Pinki Maitra', 'pinki.m@gmail.com', '7a6583060583f77fa4192cdec816d664', '1', '2019-08-01 01:12:10', '2019-07-31 19:42:10'),
+(20, 'Manojit Nandi', 'test@gmail.com', '3549bf1d87002b3e6fd21d1b152439ca', '1', '2019-11-24 15:09:03', '2019-12-04 04:52:48'),
+(21, 'Sourav Nandi', 'souravs@gmail.com', '3549bf1d87002b3e6fd21d1b152439ca', '1', '2019-11-24 15:32:51', '2019-11-24 10:06:39');
 
 -- --------------------------------------------------------
 
@@ -532,7 +752,7 @@ CREATE TABLE `tblorders` (
   `order_unique_id` varchar(255) NOT NULL COMMENT 'The unique session id for any order',
   `order_amt` decimal(12,2) NOT NULL,
   `order_currency` varchar(50) NOT NULL,
-  `order_cust_id` int(11) DEFAULT NULL,
+  `order_cust_id` varchar(110) NOT NULL,
   `order_time` datetime NOT NULL,
   `paid_status` enum('1','0') NOT NULL DEFAULT '0',
   `modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -543,42 +763,54 @@ CREATE TABLE `tblorders` (
 --
 
 INSERT INTO `tblorders` (`order_id`, `order_unique_id`, `order_amt`, `order_currency`, `order_cust_id`, `order_time`, `paid_status`, `modified`) VALUES
-(5, 'eea2qpthfqje1abv5scmrrka6q', '240.00', 'USD', 2147483647, '2019-06-29 14:51:25', '1', '2019-06-29 09:21:25'),
-(7, '1561801282_9437149', '295.00', 'USD', 2147483647, '2019-06-29 15:12:58', '1', '2019-06-29 09:42:58'),
-(8, '1561801498_349220', '240.00', 'USD', 2147483647, '2019-06-29 15:16:18', '1', '2019-06-29 09:46:18'),
-(9, '1561801623_8054856', '415.00', 'USD', 2147483647, '2019-06-29 15:23:26', '1', '2019-06-29 09:53:26'),
-(10, '1561803774_8793574', '130.00', 'USD', 2147483647, '2019-06-29 15:54:13', '1', '2019-06-29 10:24:13'),
-(11, '1561803938_6258441', '100.00', 'USD', 2147483647, '2019-06-29 15:56:38', '1', '2019-06-29 10:26:38'),
-(12, '1561804526_1064495', '165.00', 'USD', 2147483647, '2019-06-29 16:06:07', '1', '2019-06-29 10:36:07'),
-(13, '1561804583_4674706', '550.00', 'USD', 2147483647, '2019-06-29 16:09:02', '1', '2019-06-29 10:39:02'),
-(14, '1561806274_5525339', '140.00', 'USD', 2147483647, '2019-06-29 16:36:44', '1', '2019-06-29 11:06:44'),
-(15, '1561806635_2724546', '100.00', 'USD', 2147483647, '2019-06-29 16:41:44', '1', '2019-06-29 11:11:44'),
-(16, '1561966724_2539034', '300.00', 'USD', 2147483647, '2019-07-01 13:12:00', '1', '2019-07-01 07:42:00'),
-(17, '1561967534_2276440', '100.00', 'USD', 2147483647, '2019-07-01 13:23:01', '1', '2019-07-01 07:53:01'),
-(18, '1561976526_4160469', '300.00', 'USD', 2147483647, '2019-07-01 15:53:56', '1', '2019-07-01 10:23:56'),
-(19, '1561977012_2684746', '100.00', 'USD', 2147483647, '2019-07-01 16:01:01', '1', '2019-07-01 10:31:01'),
-(20, '1561982107_7550068', '300.00', 'USD', 0, '2019-07-01 17:27:36', '1', '2019-07-01 11:57:36'),
-(21, '1562046285_2532204', '130.00', 'USD', 2147483647, '2019-07-02 15:02:05', '1', '2019-07-02 09:32:05'),
-(22, '1562141432_2648642', '270.00', 'USD', NULL, '2019-07-03 13:46:17', '1', '2019-07-03 08:16:17'),
-(23, '1562141976_6065933', '400.00', 'USD', NULL, '2019-07-03 14:11:07', '1', '2019-07-03 08:41:07'),
-(24, '1562143859_5895242', '230.00', 'USD', NULL, '2019-07-03 14:26:48', '1', '2019-07-03 08:56:48'),
-(25, '1562147615_147789', '245.00', 'USD', NULL, '2019-07-03 15:26:36', '1', '2019-07-03 09:56:36'),
-(26, '1562148812_4744770', '265.00', 'USD', 2147483647, '2019-07-03 15:44:54', '1', '2019-07-03 10:14:54'),
-(27, '1562393637_4080324', '300.00', 'USD', NULL, '2019-07-06 11:45:57', '1', '2019-07-06 06:15:57'),
-(28, '1562657504_7838597', '270.00', 'USD', NULL, '2019-07-09 13:06:20', '1', '2019-07-09 11:06:20'),
-(29, '1562670529_2918082', '300.00', 'USD', NULL, '2019-07-09 13:10:33', '1', '2019-07-09 11:10:33'),
-(30, '1562670884_5175896', '100.00', 'USD', NULL, '2019-07-09 13:16:03', '1', '2019-07-09 11:16:03'),
-(31, '1562671234_9697957', '310.00', 'USD', NULL, '2019-07-09 13:21:26', '1', '2019-07-09 11:21:26'),
-(32, '1562671306_1320394', '280.00', 'USD', NULL, '2019-07-09 13:23:02', '1', '2019-07-09 11:23:02'),
-(33, '1562671441_165543', '230.00', 'USD', NULL, '2019-07-09 13:24:56', '1', '2019-07-09 11:24:56'),
-(34, '1562671770_40810', '310.00', 'USD', NULL, '2019-07-09 13:30:37', '1', '2019-07-09 11:30:37'),
-(35, '1562671947_1660185', '385.00', 'USD', NULL, '2019-07-09 13:33:28', '1', '2019-07-09 11:33:28'),
-(36, '1562672200_1645907', '240.00', 'USD', NULL, '2019-07-09 13:37:47', '1', '2019-07-09 11:37:47'),
-(37, '1562737093_5778573', '130.00', 'USD', NULL, '2019-07-10 11:09:58', '1', '2019-07-10 05:39:59'),
-(38, '1562738714_2936189', '285.00', 'USD', NULL, '2019-07-10 11:38:03', '1', '2019-07-10 06:08:03'),
-(39, '1562740470_8029243', '305.00', 'USD', NULL, '2019-07-10 12:06:06', '1', '2019-07-10 06:36:06'),
-(40, '1562743221_2410279', '100.00', 'USD', NULL, '2019-07-10 12:52:07', '1', '2019-07-10 07:22:07'),
-(41, '1562909745_6112445', '140.00', 'USD', NULL, '2019-07-12 11:08:52', '1', '2019-07-12 05:38:52');
+(5, 'eea2qpthfqje1abv5scmrrka6q', '240.00', 'USD', '2147483647', '2019-06-29 14:51:25', '1', '2019-06-29 09:21:25'),
+(7, '1561801282_9437149', '295.00', 'USD', '2147483647', '2019-06-29 15:12:58', '1', '2019-06-29 09:42:58'),
+(8, '1561801498_349220', '240.00', 'USD', '2147483647', '2019-06-29 15:16:18', '1', '2019-06-29 09:46:18'),
+(9, '1561801623_8054856', '415.00', 'USD', '2147483647', '2019-06-29 15:23:26', '1', '2019-06-29 09:53:26'),
+(10, '1561803774_8793574', '130.00', 'USD', '2147483647', '2019-06-29 15:54:13', '1', '2019-06-29 10:24:13'),
+(11, '1561803938_6258441', '100.00', 'USD', '2147483647', '2019-06-29 15:56:38', '1', '2019-06-29 10:26:38'),
+(12, '1561804526_1064495', '165.00', 'USD', '2147483647', '2019-06-29 16:06:07', '1', '2019-06-29 10:36:07'),
+(13, '1561804583_4674706', '550.00', 'USD', '2147483647', '2019-06-29 16:09:02', '1', '2019-06-29 10:39:02'),
+(14, '1561806274_5525339', '140.00', 'USD', '2147483647', '2019-06-29 16:36:44', '1', '2019-06-29 11:06:44'),
+(15, '1561806635_2724546', '100.00', 'USD', '2147483647', '2019-06-29 16:41:44', '1', '2019-06-29 11:11:44'),
+(16, '1561966724_2539034', '300.00', 'USD', '2147483647', '2019-07-01 13:12:00', '1', '2019-07-01 07:42:00'),
+(17, '1561967534_2276440', '100.00', 'USD', '2147483647', '2019-07-01 13:23:01', '1', '2019-07-01 07:53:01'),
+(18, '1561976526_4160469', '300.00', 'USD', '2147483647', '2019-07-01 15:53:56', '1', '2019-07-01 10:23:56'),
+(19, '1561977012_2684746', '100.00', 'USD', '2147483647', '2019-07-01 16:01:01', '1', '2019-07-01 10:31:01'),
+(20, '1561982107_7550068', '300.00', 'USD', '0', '2019-07-01 17:27:36', '1', '2019-07-01 11:57:36'),
+(21, '1562046285_2532204', '130.00', 'USD', '2147483647', '2019-07-02 15:02:05', '1', '2019-07-02 09:32:05'),
+(22, '1562141432_2648642', '270.00', 'USD', '', '2019-07-03 13:46:17', '1', '2019-07-03 08:16:17'),
+(23, '1562141976_6065933', '400.00', 'USD', '', '2019-07-03 14:11:07', '1', '2019-07-03 08:41:07'),
+(24, '1562143859_5895242', '230.00', 'USD', '', '2019-07-03 14:26:48', '1', '2019-07-03 08:56:48'),
+(25, '1562147615_147789', '245.00', 'USD', '', '2019-07-03 15:26:36', '1', '2019-07-03 09:56:36'),
+(26, '1562148812_4744770', '265.00', 'USD', '2147483647', '2019-07-03 15:44:54', '1', '2019-07-03 10:14:54'),
+(27, '1562393637_4080324', '300.00', 'USD', '', '2019-07-06 11:45:57', '1', '2019-07-06 06:15:57'),
+(28, '1562657504_7838597', '270.00', 'USD', '', '2019-07-09 13:06:20', '1', '2019-07-09 11:06:20'),
+(29, '1562670529_2918082', '300.00', 'USD', '', '2019-07-09 13:10:33', '1', '2019-07-09 11:10:33'),
+(30, '1562670884_5175896', '100.00', 'USD', '', '2019-07-09 13:16:03', '1', '2019-07-09 11:16:03'),
+(31, '1562671234_9697957', '310.00', 'USD', '', '2019-07-09 13:21:26', '1', '2019-07-09 11:21:26'),
+(32, '1562671306_1320394', '280.00', 'USD', '', '2019-07-09 13:23:02', '1', '2019-07-09 11:23:02'),
+(33, '1562671441_165543', '230.00', 'USD', '', '2019-07-09 13:24:56', '1', '2019-07-09 11:24:56'),
+(34, '1562671770_40810', '310.00', 'USD', '', '2019-07-09 13:30:37', '1', '2019-07-09 11:30:37'),
+(35, '1562671947_1660185', '385.00', 'USD', '', '2019-07-09 13:33:28', '1', '2019-07-09 11:33:28'),
+(36, '1562672200_1645907', '240.00', 'USD', '', '2019-07-09 13:37:47', '1', '2019-07-09 11:37:47'),
+(37, '1562737093_5778573', '130.00', 'USD', '', '2019-07-10 11:09:58', '1', '2019-07-10 05:39:59'),
+(38, '1562738714_2936189', '285.00', 'USD', '', '2019-07-10 11:38:03', '1', '2019-07-10 06:08:03'),
+(39, '1562740470_8029243', '305.00', 'USD', '', '2019-07-10 12:06:06', '1', '2019-07-10 06:36:06'),
+(40, '1562743221_2410279', '100.00', 'USD', '', '2019-07-10 12:52:07', '1', '2019-07-10 07:22:07'),
+(41, '1562909745_6112445', '140.00', 'USD', '', '2019-07-12 11:08:52', '1', '2019-07-12 05:38:52'),
+(42, '1572069274_8296424', '130.00', 'USD', '2147483647', '2019-10-26 11:46:17', '1', '2019-10-26 06:16:17'),
+(43, '123', '1000.00', 'usd', '111', '2019-10-27 14:33:27', '1', '2019-10-27 09:03:27'),
+(44, '1572158974_3788936', '0.00', '', '', '0000-00-00 00:00:00', '0', '2019-10-27 09:24:26'),
+(45, '1572168374_3649706', '130.00', 'USD', 'cus_G4H4VqPZ199sTC', '2019-10-27 10:59:18', '1', '2019-10-27 09:59:18'),
+(46, '1572170522_2641975', '370.00', 'USD', 'cus_G4H8FwkrAB8oOf', '2019-10-27 11:03:14', '1', '2019-10-27 10:03:14'),
+(47, '1572173233_8642833', '115.00', 'USD', 'cus_G4HrUkzqUNmh2t', '2019-10-27 11:47:50', '1', '2019-10-27 10:47:50'),
+(48, '1572173648_7267257', '230.00', 'USD', 'cus_G4HysOl8jhzCPD', '2019-10-27 11:54:54', '1', '2019-10-27 10:54:54'),
+(49, '1572173867_247829', '170.00', 'USD', 'cus_G4I1DDbIFGCFTo', '2019-10-27 11:58:18', '1', '2019-10-27 10:58:18'),
+(50, '1572174490_6420753', '501.00', 'USD', 'cus_G4ICjVtOePM7zg', '2019-10-27 12:08:45', '1', '2019-10-27 11:08:45'),
+(51, '1572175224_3450846', '600.00', 'USD', 'cus_G4IOy7I8fEc66G', '2019-10-27 12:21:04', '1', '2019-10-27 11:21:04'),
+(52, '1572178283_6159598', '510.00', 'USD', 'cus_G4JDvReCe1wGTw', '2019-10-27 13:12:04', '1', '2019-10-27 12:12:04'),
+(53, '1572410918_692127', '115.00', 'USD', 'cus_G5JmRGVVbChW4T', '2019-10-30 05:50:34', '1', '2019-10-30 04:50:34');
 
 -- --------------------------------------------------------
 
@@ -643,7 +875,18 @@ INSERT INTO `tblpayments` (`id`, `txn_id`, `order_id`, `payment_gross`, `currenc
 (36, '9BN69266A78664054', 38, '285.00', 'USD', NULL, NULL, NULL, NULL, 'Completed', '2019-07-10 06:08:03'),
 (37, '0R9815205J265902V', 39, '305.00', 'USD', NULL, NULL, NULL, NULL, 'Completed', '2019-07-10 06:36:06'),
 (38, '76B55565EE782871B', 40, '100.00', 'USD', NULL, NULL, NULL, NULL, 'Completed', '2019-07-10 07:22:07'),
-(39, '6KX903649S343032U', 41, '140.00', 'USD', NULL, NULL, NULL, NULL, 'Completed', '2019-07-12 05:38:53');
+(39, '6KX903649S343032U', 41, '140.00', 'USD', NULL, NULL, NULL, NULL, 'Completed', '2019-07-12 05:38:53'),
+(40, 'PAYID-LWZ6IMI8T929058WA747233P', 42, '130.00', 'USD', '7E9VPNWPB4JFU', 'Manojit Nandi', 'manojit87@gmail.com', 'US', 'approved', '2019-10-26 06:16:17'),
+(41, 'ch_1FY7z4AfrdXzxA574LJA4aHf', 44, '140.00', 'USD', 'cus_G4GWyShfIGY5te', NULL, NULL, NULL, 'succeeded', '2019-10-27 09:24:26'),
+(42, 'ch_1FY8WpAfrdXzxA57XvfuXdYW', 45, '130.00', 'USD', 'cus_G4H4VqPZ199sTC', NULL, NULL, NULL, 'succeeded', '2019-10-27 09:59:19'),
+(43, 'ch_1FY8adAfrdXzxA57VpKAN5Py', 46, '370.00', 'USD', 'cus_G4H8FwkrAB8oOf', NULL, NULL, NULL, 'succeeded', '2019-10-27 10:03:14'),
+(44, 'ch_1FY9HnAfrdXzxA57o6YESTo7', 47, '115.00', 'USD', 'cus_G4HrUkzqUNmh2t', NULL, NULL, NULL, 'succeeded', '2019-10-27 10:47:50'),
+(45, 'ch_1FY9OdAfrdXzxA575FCK8tl5', 48, '230.00', 'USD', 'cus_G4HysOl8jhzCPD', NULL, NULL, NULL, 'succeeded', '2019-10-27 10:54:54'),
+(46, 'ch_1FY9RvAfrdXzxA57zkRfDGeH', 49, '170.00', 'USD', 'cus_G4I1DDbIFGCFTo', NULL, NULL, NULL, 'succeeded', '2019-10-27 10:58:18'),
+(47, 'ch_1FY9c1AfrdXzxA57FYASnrS2', 50, '501.00', 'USD', 'cus_G4ICjVtOePM7zg', NULL, NULL, NULL, 'succeeded', '2019-10-27 11:08:45'),
+(48, 'ch_1FY9nxAfrdXzxA5724EKtyYg', 51, '600.00', 'USD', 'cus_G4IOy7I8fEc66G', NULL, NULL, NULL, 'succeeded', '2019-10-27 11:21:05'),
+(49, 'ch_1FYAbJAfrdXzxA5765aVaVjy', 52, '510.00', 'USD', 'cus_G4JDvReCe1wGTw', NULL, NULL, NULL, 'succeeded', '2019-10-27 12:12:04'),
+(50, 'ch_1FZ98hAfrdXzxA57du0mgmep', 53, '115.00', 'USD', 'cus_G5JmRGVVbChW4T', NULL, NULL, NULL, 'succeeded', '2019-10-30 04:50:35');
 
 -- --------------------------------------------------------
 
@@ -669,15 +912,90 @@ CREATE TABLE `tblprofile` (
 --
 
 INSERT INTO `tblprofile` (`id`, `member_id`, `full_address`, `hobby`, `food_habit`, `smoking_habit`, `drinking_habit`, `profile_img`, `created`, `modified`) VALUES
-(22, 10, 'Barasat', '3,1', 'NV', 'RS', 'SD', '1564396685.jpg', '2019-07-29 16:08:05', '2019-07-29 10:38:05'),
+(22, 10, 'Barasat', '4,3,1,2', 'NV', 'NS', 'ND', '1564976804.jpg', '2019-07-29 16:08:05', '2019-08-05 03:46:44'),
 (23, 11, '194 Gorakhshabasi Road Nagerbazar\r\n sumi apt Flat-7\r\n Kolkata-700028', '4,1', 'V', 'NS', 'ND', '1564396818.jpg', '2019-07-29 16:10:19', '2019-07-29 10:40:19'),
-(24, 12, 'Ballygung, Kolkata', '3,1', 'V', 'OS', 'SD', NULL, '2019-07-29 16:22:52', '2019-07-29 10:52:52'),
+(24, 12, 'Ballygung, Kolkata', '4,3,1,2', 'E', 'NS', 'SD', '1564976953.jpg', '2019-07-29 16:22:52', '2019-08-05 04:01:38'),
 (25, 13, 'Kalyani, Nadia', '3,1', 'NV', 'RS', 'RD', '1564397679.jpg', '2019-07-29 16:24:39', '2019-07-29 10:54:39'),
-(26, 14, 'Kolkata', '3,2', 'NV', 'RS', 'RD', '1564479358.jpg', '2019-07-30 15:05:58', '2019-07-30 09:35:58'),
+(26, 14, '194 Gorakhshabasi Road Nagerbazar Sumi Apt Flat No-7,Kolkata-700028', '4,3,1,2', 'NV', 'NS', 'ND', '1564976555.jpg', '2019-07-30 15:05:58', '2019-08-05 03:42:35'),
 (27, 15, 'DumDum', '3', 'V', 'RS', 'RD', '1564480138.jpg', '2019-07-30 15:18:58', '2019-07-30 09:48:58'),
 (28, 16, 'b     bvvvnvbnbvvbnvbnvb', '3,1', 'NV', 'NS', 'ND', NULL, '2019-07-30 18:09:31', '2019-07-30 12:39:31'),
 (29, 17, 'Kolkata', '3', 'E', 'NS', 'RD', '1564552013.jpg', '2019-07-31 11:16:53', '2019-07-31 05:46:53'),
-(30, 18, 'Chinsurah, Hooghly', '3,1', 'NV', 'NS', 'SD', '1564559527.jpg', '2019-07-31 13:22:07', '2019-07-31 07:52:07');
+(30, 18, 'Chinsurah, Hooghly', '4,3,1,2', 'E', 'NS', 'ND', '1564976232.jpg', '2019-07-31 13:22:07', '2019-08-05 03:37:12'),
+(31, 19, 'Newtown, Rajarhat', '3,1,2', 'NV', 'RS', 'RD', '1564602130.jpg', '2019-08-01 01:12:10', '2019-07-31 19:42:10'),
+(32, 20, 'BTM Layout 2nd Stage,Bengaluru, Karnataka-560076', '4,3,1,2', 'NV', 'NS', 'ND', '1574595433.JPG', '2019-11-24 15:09:03', '2019-12-04 04:52:48'),
+(37, 21, 'Hooghly, Chinsurah', '4,3,1,2', 'NV', 'RS', 'RD', '1574589999.jpg', '2019-11-24 15:32:51', '2019-11-24 10:06:39');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tblsubjects`
+--
+
+CREATE TABLE `tblsubjects` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `code` varchar(50) NOT NULL,
+  `status` enum('1','0') NOT NULL DEFAULT '1' COMMENT '1 for active user 0 for inactive subject',
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `tblsubjects`
+--
+
+INSERT INTO `tblsubjects` (`id`, `name`, `code`, `status`, `created`, `modified`) VALUES
+(1, 'Bengali', 'BENG', '1', '2019-08-03 16:15:36', '2019-08-03 16:15:50'),
+(2, 'English', 'ENG', '1', '2019-08-07 19:12:14', '2019-08-07 19:12:14'),
+(3, 'Physics', 'PHY', '1', '2019-08-07 19:13:52', '2019-08-07 19:13:52'),
+(4, 'Chemistry', 'CHEM', '1', '2019-08-07 19:14:51', '2019-08-07 19:14:51'),
+(5, 'Mathematics', 'MATH', '1', '2019-08-07 19:16:46', '2019-08-07 19:16:46'),
+(6, 'Biology', 'BIO', '1', '2019-08-07 19:17:12', '2019-08-07 19:17:12'),
+(7, 'History', 'HIST', '1', '2019-08-07 19:17:35', '2019-08-07 19:17:35'),
+(8, 'Geography', 'GEO', '1', '2019-08-07 19:17:53', '2019-08-07 19:17:53'),
+(9, 'Computer Science', 'COMP', '1', '2019-08-07 19:19:36', '2019-08-07 19:19:36'),
+(10, 'Hindi', 'HND', '1', '2019-08-07 19:20:36', '2019-08-07 19:20:36'),
+(11, 'Economics', 'ECO', '1', '2019-08-07 19:21:03', '2019-08-07 21:03:25'),
+(12, 'Test sub', 'TES', '0', '2019-08-07 21:06:44', '2019-08-07 21:06:50');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tbtstudents`
+--
+
+CREATE TABLE `tbtstudents` (
+  `id` int(11) NOT NULL,
+  `name` varchar(150) NOT NULL,
+  `email` varchar(150) NOT NULL,
+  `contact` varchar(50) NOT NULL,
+  `gender` enum('M','F') NOT NULL,
+  `roll_no` int(11) NOT NULL,
+  `student_class` int(11) NOT NULL,
+  `section` varchar(10) NOT NULL,
+  `fav_subjects` varchar(50) NOT NULL,
+  `status` enum('1','0') NOT NULL DEFAULT '1',
+  `created` datetime NOT NULL,
+  `modified` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `tbtstudents`
+--
+
+INSERT INTO `tbtstudents` (`id`, `name`, `email`, `contact`, `gender`, `roll_no`, `student_class`, `section`, `fav_subjects`, `status`, `created`, `modified`) VALUES
+(1, 'Manojit Nandi', 'manojit87@gmail.com', '9230459769', 'M', 11, 12, 'A', '9,5,1', '1', '2019-09-04 11:59:23', '2019-09-04 09:29:36'),
+(4, 'Doyeta Chakravarty', 'doyeta.piyali@gmail.com', '9903471009', 'F', 11, 7, 'B', '9,8,5,4', '1', '2019-09-04 07:19:09', '2019-09-04 07:30:46'),
+(5, 'Chinmay Nag', 'gem.chinmoy@gmail.com', '9903476776', 'M', 12, 10, 'B', '5,3,1', '1', '2019-09-04 07:19:09', '2019-09-04 13:24:41'),
+(6, 'Achinta Biswas', 'achintya@gmail.com', '9807845612', 'M', 7, 7, 'B', '8,7,6', '1', '2019-09-04 08:01:24', '2019-09-04 08:01:24'),
+(7, 'Prasenjit Dey', 'bumba@gmail.com', '9007193161', 'M', 9, 8, 'B', '11,9,2', '1', '2019-09-04 08:01:24', '2019-09-04 08:01:24'),
+(8, 'Sourav Nandi', 'souravn@gmail.com', '9230409890', 'M', 17, 11, 'B', '4,3', '1', '2019-09-04 08:04:22', '2019-09-04 08:04:22'),
+(9, 'Kaustav Nandi', 'suvo@gmail.com', '8909567321', 'M', 14, 10, 'A', '9,5,1', '1', '2019-09-04 08:07:24', '2019-09-04 08:07:24'),
+(10, 'Manideepa Nandi', 'mani@gmail.com', '9805687341', 'F', 14, 11, 'B', '7,6,1', '1', '2019-09-04 08:07:24', '2019-09-04 08:07:24'),
+(11, 'Priyanka Dutta', 'priyanka@gmail.com', '6290091321', 'F', 21, 11, 'B', '11,9,7,2,1', '1', '2019-09-04 08:07:24', '2019-09-04 08:07:24'),
+(12, 'Joy Banarjee', 'joy@gmail.com', '9126600879', 'M', 13, 12, 'A', '9,6,4', '1', '2019-09-04 08:14:20', '2019-09-04 08:14:20'),
+(13, 'Rudra Dutta', 'rudra@gmail.com', '9007352832', 'M', 6, 11, 'B', '8,7,4,2', '1', '2019-09-04 08:14:20', '2019-09-04 08:14:20'),
+(14, 'Test', 'test@gmail.com', '9126324834', 'M', 55, 7, 'B', '10', '0', '2019-09-29 07:59:57', '2019-09-29 08:00:07');
 
 -- --------------------------------------------------------
 
@@ -706,9 +1024,24 @@ INSERT INTO `users` (`id`, `name`, `email`, `email_verified_at`, `password`, `re
 (2, 'Manojit Nandi', 'mnbl87@gmail.com', NULL, '$2y$10$q0/SI580wBhPtKKJQopwae5Ql.dnk56FCWy0H7wDPMEAnI8IsfgOG', 'swbNrD4ydI1qa74KIdDSev2Y7s35IYMq7rKoKBqSumBhDzaSwhBjiIyLuzZx', '2019-01-11 11:07:09', '2019-01-11 11:07:09', '1'),
 (3, 'Doyeta Chakrovarty', 'doyeta.piyali@gmail.com', NULL, '$2y$10$stg8ppOlT/QxrfOIaVuTWObNYSUTYjFvf1gWFEKhMF45q5YMa0HBe', 'QwQCQAQKZX8hkqYdMhsS37ru8RMChbXjVAr4rXE8m2K2iCWfMQq8QvRqAUUb', '2019-01-11 13:11:39', '2019-01-11 13:11:39', '1');
 
+-- --------------------------------------------------------
+
+--
+-- Structure for view `orderabovetwohundred`
+--
+DROP TABLE IF EXISTS `orderabovetwohundred`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `orderabovetwohundred`  AS  select `tblpayments`.`id` AS `id`,`tblpayments`.`txn_id` AS `txn_id`,`tblpayments`.`order_id` AS `order_id`,`tblpayments`.`payment_gross` AS `payment_gross`,`tblpayments`.`currency_code` AS `currency_code`,`tblpayments`.`payer_id` AS `payer_id`,`tblpayments`.`payer_name` AS `payer_name`,`tblpayments`.`payer_email` AS `payer_email`,`tblpayments`.`payer_country` AS `payer_country`,`tblpayments`.`payment_status` AS `payment_status`,`tblpayments`.`created` AS `created` from `tblpayments` where (`tblpayments`.`payment_gross` > 200) ;
+
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `admins`
+--
+ALTER TABLE `admins`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `attendance`
@@ -744,6 +1077,12 @@ ALTER TABLE `employees`
 -- Indexes for table `images`
 --
 ALTER TABLE `images`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `members`
+--
+ALTER TABLE `members`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -795,6 +1134,12 @@ ALTER TABLE `tblcart`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `tblcomments`
+--
+ALTER TABLE `tblcomments`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `tblhobby`
 --
 ALTER TABLE `tblhobby`
@@ -825,6 +1170,18 @@ ALTER TABLE `tblprofile`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `tblsubjects`
+--
+ALTER TABLE `tblsubjects`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `tbtstudents`
+--
+ALTER TABLE `tbtstudents`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -833,6 +1190,12 @@ ALTER TABLE `users`
 --
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `admins`
+--
+ALTER TABLE `admins`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `attendance`
@@ -844,7 +1207,7 @@ ALTER TABLE `attendance`
 -- AUTO_INCREMENT for table `budget_managers`
 --
 ALTER TABLE `budget_managers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `business_units`
@@ -862,7 +1225,7 @@ ALTER TABLE `country`
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `images`
@@ -871,22 +1234,28 @@ ALTER TABLE `images`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
+-- AUTO_INCREMENT for table `members`
+--
+ALTER TABLE `members`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `posts`
 --
 ALTER TABLE `posts`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `states`
@@ -904,19 +1273,25 @@ ALTER TABLE `subbusiness_units`
 -- AUTO_INCREMENT for table `tbladmin`
 --
 ALTER TABLE `tbladmin`
-  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `tblblog`
 --
 ALTER TABLE `tblblog`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `tblcart`
 --
 ALTER TABLE `tblcart`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=114;
+
+--
+-- AUTO_INCREMENT for table `tblcomments`
+--
+ALTER TABLE `tblcomments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `tblhobby`
@@ -928,25 +1303,37 @@ ALTER TABLE `tblhobby`
 -- AUTO_INCREMENT for table `tblmembers`
 --
 ALTER TABLE `tblmembers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `tblorders`
 --
 ALTER TABLE `tblorders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
 -- AUTO_INCREMENT for table `tblpayments`
 --
 ALTER TABLE `tblpayments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT for table `tblprofile`
 --
 ALTER TABLE `tblprofile`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+
+--
+-- AUTO_INCREMENT for table `tblsubjects`
+--
+ALTER TABLE `tblsubjects`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `tbtstudents`
+--
+ALTER TABLE `tbtstudents`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `users`

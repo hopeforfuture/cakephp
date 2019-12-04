@@ -20,7 +20,8 @@ class CategoryController extends AppController
 		echo 'In administrator category page<br/>';
 		print(AuthComponent::user('admin_id'));
 		echo '<pre>';
-		print_r($this->Session->read());
+		print_r($this->Auth->user());
+		//print_r($this->Session->read());
 		die;
 	}
 	
