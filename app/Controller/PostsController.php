@@ -117,5 +117,14 @@ class PostsController extends AppController
 			return $this->redirect(array('action' => 'index'));
 		}
 	}
+
+	public function allposts() {
+		$db = $this->Post->getDataSource();
+		$sql = "SELECT * FROM posts";
+		$results = $db->fetchAll($sql);
+		echo "<pre>";
+		print_r($results);
+		die;
+	}
 }
 ?>
